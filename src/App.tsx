@@ -1,35 +1,37 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import TableNode from "./components/TableNode";
+import "reactflow/dist/style.css";
+import ReactFlow from "reactflow";
+import "reactflow/dist/style.css";
+import { useMemo } from "react";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const nodeTypes = useMemo(() => ({ TableNode: TableNode }), []);
+
+  const initialNodes = [
+    { id: "node-1", type: "TableNode", position: { x: 0, y: 0 }, data: {
+      name: "workorder",
+      columns: [
+        {
+          name: "id",
+        },
+        {
+          name: "name",
+        },
+        {
+          name: "start_date",
+        },
+      ],
+    } },
+  ];
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="container mx-auto">
+      <div className="grid grid-cols-3 gap-1">
+        <div>01</div>
+        <div className="col-span-2 bg-slate-300" style={{ height: 800}}>
+          <ReactFlow nodeTypes={nodeTypes} nodes={initialNodes} />
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
-
-export default App
