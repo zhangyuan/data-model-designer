@@ -1,14 +1,23 @@
 import { Handle, NodeProps, Position } from "reactflow";
 
-export type Table = {
-  name: string;
-  columns: [{
-    name: string
-  }]
+export type TableData = {
+    name: string,
+    columns: {
+      name: string
+    }[]
+}
+
+export type TableProps = {
+  id: string,
+  position: {x: number, y: number},
+  type: string,
+  data: TableData
 };
 
-export default function TableNode(props: NodeProps<Table>) {
+export default function TableNode(props: NodeProps<TableProps>) {
   const table = props.data
+
+  console.log("table", table)
 
   return (
     <>
