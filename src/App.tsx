@@ -1,9 +1,10 @@
-import TableNode, { TableProps } from "./components/TableNode";
-import ReactFlow from "reactflow";
+import TableNode, { TableData } from "./components/TableNode";
+import ReactFlow, { NodeChange, applyNodeChanges, Node } from "reactflow";
 import { useMemo, useState } from "react";
 import Editor from "@monaco-editor/react";
 import "reactflow/dist/style.css";
 import { parse, stringify } from "yaml";
+import { useCallback } from 'react';
 
 export interface Spec {
   tables: {
@@ -14,7 +15,7 @@ export interface Spec {
   }[];
 }
 
-const updateTableProps = (nodesProps: TableProps[], spec: Spec) => {
+const buildNodes = function (spec: Spec): Node<TableData>[] {
   return spec.tables.map((t, idx) => {
     return {
       id: t.name,
@@ -28,6 +29,7 @@ const updateTableProps = (nodesProps: TableProps[], spec: Spec) => {
 export default function App() {
   const nodeTypes = useMemo(() => ({ tableNode: TableNode }), []);
 
+
   const spec: Spec = {
     tables: [
       {
@@ -40,18 +42,25 @@ export default function App() {
     stringify(spec)
   );
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
-  const [nodes, setNodes] = useState<TableProps[]>(updateTableProps([], spec));
+  const initialNodes =  buildNodes(spec)
+
+  const [nodes, setNodes] = useState(initialNodes);
 
   const handleEditorChange = (value: string | undefined) => {
     setCode(value || "");
     try {
       const newSpec = parse(value || "") as Spec;
-      setNodes(updateTableProps(nodes, newSpec))
+      setNodes(buildNodes(newSpec))
       setErrorMessage("");
     } catch (e) {
       setErrorMessage((e as Error).message);
     }
   };
+
+  const onNodesChange = useCallback(
+    (changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
+    [],
+  );
 
   return (
     <div className="container mx-auto">
@@ -69,8 +78,8 @@ export default function App() {
             <div className="errors bg-red-100 p-2">{errorMessage}</div>
           )}
         </div>
-        <div className="col-span-2 bg-slate-300" style={{ height: 800 }}>
-          <ReactFlow nodeTypes={nodeTypes} nodes={nodes} />
+        <div className="col-span-2 bg-slate-300" style={{ height: '100%' }}>
+          <ReactFlow nodeTypes={nodeTypes} nodes={nodes} onNodesChange={onNodesChange} />
         </div>
       </div>
     </div>

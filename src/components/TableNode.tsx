@@ -1,4 +1,4 @@
-import { Handle, NodeProps, Position } from "reactflow";
+import { Handle, Position } from "reactflow";
 
 export type TableData = {
     name: string,
@@ -7,24 +7,13 @@ export type TableData = {
     }[]
 }
 
-export type TableProps = {
-  id: string,
-  position: {x: number, y: number},
-  type: string,
-  data: TableData
-};
-
-export default function TableNode(props: NodeProps<TableProps>) {
-  const table = props.data
-
-  console.log("table", table)
-
+export default function TableNode({data}: {data: TableData}) {
   return (
     <>
       <Handle type="target" position={Position.Top} />
       <div className="border-solid border-2 w-64 grid grid-cols-1 divide-y bg-orange-200 m-2">
-        <div className="p-2 bg-blue-400 text-white">{table.name}</div>
-        {table.columns.map((c, idx) => {
+        <div className="p-2 bg-blue-400 text-white">{data.name}</div>
+        {data.columns.map((c, idx) => {
           return <div className="p-2 text-black" key={idx}>{c.name}</div>;
         })}
       </div>
