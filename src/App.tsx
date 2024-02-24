@@ -187,7 +187,7 @@ export default function App() {
             <Controls />
           </ReactFlow>
           <div>
-            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={onUpdateSpec}>Update spec</button>
+            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={onUpdateSpec}>Update spec on the left</button>
           </div>
         </div>
       </div>
