@@ -7,8 +7,13 @@ export type TableData = {
     }[]
 }
 
-export type EdgeData = {
-  name: string
+export type RefData = {
+  source: {
+    table: string
+  }
+  target: {
+    table: string
+  }
 }
 
 export default function TableNode({data}: {data: TableData}) {

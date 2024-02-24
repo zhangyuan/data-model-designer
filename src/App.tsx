@@ -1,6 +1,6 @@
-import TableNode, { TableData } from "./components/TableNode";
-import ReactFlow, { NodeChange, applyNodeChanges, Node, Edge, Connection, EdgeChange, applyEdgeChanges, addEdge } from "reactflow";
-import { useMemo, useState } from "react";
+import TableNode, { RefData, TableData } from "./components/TableNode";
+import ReactFlow, { NodeChange, applyNodeChanges, Node, Edge, Connection, EdgeChange, applyEdgeChanges, addEdge, Background, Controls } from "reactflow";
+import { useMemo, useState, MouseEvent } from "react";
 import Editor from "@monaco-editor/react";
 import "reactflow/dist/style.css";
 import { parse, stringify } from "yaml";
@@ -8,48 +8,90 @@ import { useCallback } from 'react';
 
 export interface Spec {
   tables: {
-    name: string;
+    name: string
     columns: {
-      name: string;
+      name: string
     }[]
+    position?: {
+      x: number
+      y: number
+    }
   }[]
   refs?: {
     source: {
       table: string;
-      column?: string;
     };
     target: {
       table: string;
-      column?: string;
     };
   }[]
 }
 
 const buildNodes = function (spec: Spec): Node<TableData>[] {
   return spec.tables.map((t, idx) => {
+    let position = t.position
+    if (!position) {
+      position = { x: 10 + 300 * idx, y: 10}
+    }
+
     return {
       id: t.name,
-      position: { x: 10 + 100 * idx, y: 10},
+      position: position,
       data: t,
       type: 'tableNode',
     }
   })
 }
 
-const buildEdges = function (spec: Spec): Edge[] {
-  return spec.refs?.map((e) => {
-    return {
-      id: `${e.source.table}.${e.source.column}-${e.target.table}.${e.target.column}`,
-      source: e.source.table,
-      target: e.target.table,
-      type: "step"
+const buildEdgeFromTables = (sourceTable: string, targetTable: string) => {
+  return {
+    id: `${sourceTable}/${targetTable}`,
+    source: sourceTable,
+    target: targetTable,
+    type: "step",
+    data: {
+      source: {
+        table: sourceTable
+      },
+      target: {
+        table: targetTable
+      }
     }
-  }) || []
+  }
+}
+
+const buildEdges = function (spec: Spec): Edge<RefData>[] {
+  return spec.refs?.map((e) => buildEdgeFromTables(e.source.table, e.target.table)) || []
+}
+
+const buildSpec = function(nodes: Node<TableData>[], edges: Edge<RefData>[]) : Spec {
+  return {
+    tables: nodes.map(n => {
+      return {
+        name: n.id,
+        position: {
+          x: n.position.x,
+          y: n.position.y
+        },
+        columns: n.data.columns
+      }
+    }),
+    refs: edges.map((e) => {
+      return {
+        source: {
+          table: e.data?.source.table || ''
+        },
+        target: {
+          table: e.data?.target.table || ''
+        }
+      }
+    })
+  }
 }
 
 export default function App() {
   const nodeTypes = useMemo(() => ({ tableNode: TableNode }), []);
-  const spec: Spec = {
+  const initSpec: Spec = {
     tables: [
       {
         name: "order",
@@ -71,6 +113,9 @@ export default function App() {
       }
     ]
   };
+
+  const [spec, setSpec] = useState<Spec>(initSpec);
+
   const [code, setCode] = useState<string | undefined>(
     stringify(spec)
   );
@@ -93,8 +138,9 @@ export default function App() {
   };
 
   const onNodesChange = useCallback(
-    (changes: NodeChange[]) => setNodes((oldNodes) => applyNodeChanges(changes, oldNodes)),
-    [],
+    (changes: NodeChange[]) => {
+      setNodes((oldNodes) => applyNodeChanges(changes, oldNodes))
+    }, [],
   );
 
   const onEdgesChange = useCallback(
@@ -106,17 +152,25 @@ export default function App() {
 
   const onConnect = useCallback(
     (connection: Connection) => {
-      setEdges((oldEdges) => addEdge(connection, oldEdges));
+      const newEdget = buildEdgeFromTables(connection.source!, connection.target!)
+      setEdges((oldEdges) => addEdge(newEdget, oldEdges));
     },
     [setEdges],
   );
+
+  const onUpdateSpec = (e: MouseEvent<HTMLButtonElement>) => {
+    const newSpec = buildSpec(nodes, edges)
+    setSpec(newSpec)
+    setCode(stringify(newSpec))
+    e.preventDefault()
+  }
 
   return (
     <div className="container mx-auto">
       <div className="grid grid-cols-3 gap-1">
         <div className="overlay rounded-md overflow-hidden w-full h-full shadow-4xl pt-2">
           <Editor
-            height="85vh"
+            height="90vh"
             width={`100%`}
             language={"yaml"}
             value={code}
@@ -127,8 +181,14 @@ export default function App() {
             <div className="errors bg-red-100 p-2">{errorMessage}</div>
           )}
         </div>
-        <div className="col-span-2 bg-slate-300" style={{ height: '100%' }}>
-          <ReactFlow nodeTypes={nodeTypes} nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} />
+        <div className="col-span-2" style={{ height: '100%' }}>
+          <ReactFlow nodeTypes={nodeTypes} nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}>
+            <Background />
+            <Controls />
+          </ReactFlow>
+          <div>
+            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={onUpdateSpec}>Update spec</button>
+          </div>
         </div>
       </div>
     </div>
