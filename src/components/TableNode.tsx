@@ -22,8 +22,8 @@ export default function TableNode({data}: {data: TableData}) {
   return (
     <>
       <Handle type="target" position={Position.Top} />
-      <div className="border-solid border-2 w-64 grid grid-cols-1 divide-y bg-orange-200 m-2">
-        <div className={"p-2 " + "bg-blue-400"} style={{ backgroundColor: data.background_color, color: data.text_color }}>{data.name}</div>
+      <div className="border-solid border-2 w-64 grid grid-cols-1 divide-y bg-lime-100 m-2">
+        <div className={"p-2 " + "bg-sky-300"} style={{ backgroundColor: data.background_color, color: data.text_color }}>{data.name}</div>
         {data.columns?.map((c, idx) => {
           return <div className="p-2 text-black" key={idx}>{c.name}</div>;
         })}

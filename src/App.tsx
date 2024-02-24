@@ -76,22 +76,22 @@ export default function App() {
   const initSpec: Spec = {
     tables: [
       {
-        name: "order"
+        name: "order", position: {x: 200, y: 20}, background_color: "#FFD23F"
       },
       {
         name: "address",
+        position: {x: 400, y: 200},
         columns: [{ name: "line1"}, {name: "line2" }],
+      },
+      {
+        name: "delivery_date",
+        position: {x: 70, y: 200},
+        columns: [{ name: "day"}, {name: "month" }, {name: "year"}],
       },
     ],
     refs: [
-      {
-        source: {
-          table: "order"
-        },
-        target: {
-          table: "address"
-        }
-      }
+      { source: { table: "order"}, target: { table: "address"}},
+      { source: { table: "order"}, target: { table: "delivery_date"}}
     ]
   };
 
@@ -159,7 +159,7 @@ export default function App() {
       <div className="grid grid-cols-3 gap-1">
         <div className="overlay rounded-md overflow-hidden w-full h-full shadow-4xl pt-2">
           <Editor
-            height="90vh"
+            height="80vh"
             width={`100%`}
             language={"yaml"}
             value={code}
@@ -176,7 +176,12 @@ export default function App() {
             <Controls />
           </ReactFlow>
           <div>
-            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={onUpdateSpec}>Update spec on the left</button>
+            <div className="font-medium">Usage</div>
+            <ol className="list-decimal list-inside">
+              <li>Add the table (including the optional columns) on the left pannel.</li>
+              <li>Relocate the tables in the diagram by dradding and connect the tables.</li>
+              <li>Click the button <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold px-4 rounded" onClick={onUpdateSpec}>Sync</button> to update the code on the left pannel.</li>
+            </ol>
           </div>
         </div>
       </div>
