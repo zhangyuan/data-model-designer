@@ -1,5 +1,5 @@
 import TableNode, { TableData } from "./components/TableNode";
-import ReactFlow, { NodeChange, applyNodeChanges, Node } from "reactflow";
+import ReactFlow, { NodeChange, applyNodeChanges, Node, Edge, EdgeChange, applyEdgeChanges } from "reactflow";
 import { useMemo, useState } from "react";
 import Editor from "@monaco-editor/react";
 import "reactflow/dist/style.css";
@@ -11,8 +11,18 @@ export interface Spec {
     name: string;
     columns: {
       name: string;
-    }[];
-  }[];
+    }[]
+  }[]
+  refs?: {
+    source: {
+      table: string;
+      column?: string;
+    };
+    target: {
+      table: string;
+      column?: string;
+    };
+  }[]
 }
 
 const buildNodes = function (spec: Spec): Node<TableData>[] {
@@ -26,25 +36,49 @@ const buildNodes = function (spec: Spec): Node<TableData>[] {
   })
 }
 
+const buildEdges = function (spec: Spec): Edge[] {
+  return spec.refs?.map((e) => {
+    return {
+      id: `${e.source.table}.${e.source.column}-${e.target.table}.${e.target.column}`,
+      source: e.source.table,
+      target: e.target.table,
+    }
+  }) || []
+}
+
 export default function App() {
   const nodeTypes = useMemo(() => ({ tableNode: TableNode }), []);
-
-
   const spec: Spec = {
     tables: [
       {
         name: "order",
         columns: [{ name: "id" }, { name: "name" }, { name: "start_date" }],
       },
+      {
+        name: "address",
+        columns: [{ name: "line1"}, {name: "line2" }],
+      },
     ],
+    refs: [
+      {
+        source: {
+          table: "order"
+        },
+        target: {
+          table: "address"
+        }
+      }
+    ]
   };
   const [code, setCode] = useState<string | undefined>(
     stringify(spec)
   );
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const initialNodes =  buildNodes(spec)
-
   const [nodes, setNodes] = useState(initialNodes);
+
+  const initialEdges =  buildEdges(spec)
+  const [edges, setEdges] = useState(initialEdges)
 
   const handleEditorChange = (value: string | undefined) => {
     setCode(value || "");
@@ -58,8 +92,15 @@ export default function App() {
   };
 
   const onNodesChange = useCallback(
-    (changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
+    (changes: NodeChange[]) => setNodes((oldNodes) => applyNodeChanges(changes, oldNodes)),
     [],
+  );
+
+  const onEdgesChange = useCallback(
+    (changes: EdgeChange[]) => {
+      setEdges((oldEdges) => applyEdgeChanges(changes, oldEdges));
+    },
+    [setEdges],
   );
 
   return (
@@ -79,7 +120,7 @@ export default function App() {
           )}
         </div>
         <div className="col-span-2 bg-slate-300" style={{ height: '100%' }}>
-          <ReactFlow nodeTypes={nodeTypes} nodes={nodes} onNodesChange={onNodesChange} />
+          <ReactFlow nodeTypes={nodeTypes} nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} />
         </div>
       </div>
     </div>

@@ -7,6 +7,10 @@ export type TableData = {
     }[]
 }
 
+export type EdgeData = {
+  name: string
+}
+
 export default function TableNode({data}: {data: TableData}) {
   return (
     <>
