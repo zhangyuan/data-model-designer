@@ -1,5 +1,5 @@
 import TableNode, { TableData } from "./components/TableNode";
-import ReactFlow, { NodeChange, applyNodeChanges, Node, Edge, EdgeChange, applyEdgeChanges } from "reactflow";
+import ReactFlow, { NodeChange, applyNodeChanges, Node, Edge, Connection, EdgeChange, applyEdgeChanges, addEdge } from "reactflow";
 import { useMemo, useState } from "react";
 import Editor from "@monaco-editor/react";
 import "reactflow/dist/style.css";
@@ -42,6 +42,7 @@ const buildEdges = function (spec: Spec): Edge[] {
       id: `${e.source.table}.${e.source.column}-${e.target.table}.${e.target.column}`,
       source: e.source.table,
       target: e.target.table,
+      type: "step"
     }
   }) || []
 }
@@ -103,6 +104,13 @@ export default function App() {
     [setEdges],
   );
 
+  const onConnect = useCallback(
+    (connection: Connection) => {
+      setEdges((oldEdges) => addEdge(connection, oldEdges));
+    },
+    [setEdges],
+  );
+
   return (
     <div className="container mx-auto">
       <div className="grid grid-cols-3 gap-1">
@@ -120,7 +128,7 @@ export default function App() {
           )}
         </div>
         <div className="col-span-2 bg-slate-300" style={{ height: '100%' }}>
-          <ReactFlow nodeTypes={nodeTypes} nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} />
+          <ReactFlow nodeTypes={nodeTypes} nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} />
         </div>
       </div>
     </div>
