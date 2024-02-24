@@ -5,27 +5,7 @@ import Editor from "@monaco-editor/react";
 import "reactflow/dist/style.css";
 import { parse, stringify } from "yaml";
 import { useCallback } from 'react';
-
-export interface Spec {
-  tables: {
-    name: string
-    columns: {
-      name: string
-    }[]
-    position?: {
-      x: number
-      y: number
-    }
-  }[]
-  refs?: {
-    source: {
-      table: string;
-    };
-    target: {
-      table: string;
-    };
-  }[]
-}
+import { Spec, validateSpecSchema } from './spec';
 
 const buildNodes = function (spec: Spec): Node<TableData>[] {
   return spec.tables.map((t, idx) => {
@@ -94,8 +74,7 @@ export default function App() {
   const initSpec: Spec = {
     tables: [
       {
-        name: "order",
-        columns: [{ name: "id" }, { name: "name" }, { name: "start_date" }],
+        name: "order"
       },
       {
         name: "address",
@@ -128,16 +107,23 @@ export default function App() {
 
   const handleEditorChange = (value: string | undefined) => {
     setCode(value || "");
+
     try {
-      const newSpec = parse(value || "") as Spec;
-      setNodes(buildNodes(newSpec))
-      setErrorMessage("");
+      const data = parse(value || "")
+      if (validateSpecSchema(data)) {
+        const newSpec = data as Spec
+        setNodes(buildNodes(newSpec))
+        setErrorMessage("");
+      } else {
+        const errorMessage = validateSpecSchema.errors!.map(e => `${e.instancePath}: ${e.message}`).join("; ")
+        throw new Error(errorMessage);
+      }
     } catch (e) {
       setErrorMessage((e as Error).message);
     }
   };
 
-  const onNodesChange = useCallback(
+  const handleNodesChange = useCallback(
     (changes: NodeChange[]) => {
       setNodes((oldNodes) => applyNodeChanges(changes, oldNodes))
     }, [],
@@ -182,7 +168,7 @@ export default function App() {
           )}
         </div>
         <div className="col-span-2" style={{ height: '100%' }}>
-          <ReactFlow nodeTypes={nodeTypes} nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}>
+          <ReactFlow nodeTypes={nodeTypes} nodes={nodes} edges={edges} onNodesChange={handleNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}>
             <Background />
             <Controls />
           </ReactFlow>
