@@ -115,6 +115,7 @@ export default function App() {
       if (validateSpecSchema(data)) {
         const newSpec = data as Spec
         setNodes(buildNodes(newSpec))
+        setEdges(buildEdges(newSpec))
         setErrorMessage("");
       } else {
         const errorMessage = validateSpecSchema.errors!.map(e => `${e.instancePath}: ${e.message}`).join("; ")
