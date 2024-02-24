@@ -3,6 +3,8 @@ import Ajv, { JSONSchemaType } from 'ajv';
 export type Spec = {
   tables: {
     name: string;
+    background_color?: string;
+    text_color?: string;
     columns?: {
       name: string;
     }[];
@@ -30,6 +32,8 @@ export const SpecSchema: JSONSchemaType<Spec> = {
         type: 'object',
         properties: {
           name: { type: 'string' },
+          background_color: { type: 'string', nullable: true },
+          text_color: { type: 'string', nullable: true },
           columns: {
             type: 'array',
             nullable: true,

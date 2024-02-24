@@ -53,6 +53,8 @@ const buildSpec = function(nodes: Node<TableData>[], edges: Edge<RefData>[]) : S
           x: n.position.x,
           y: n.position.y
         },
+        background_color: n.data.background_color,
+        text_color: n.data.text_color,
         columns: n.data.columns
       }
     }),
