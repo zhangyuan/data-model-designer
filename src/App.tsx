@@ -2,10 +2,13 @@ import TableNode, { RefData, TableData } from "./components/TableNode";
 import ReactFlow, { NodeChange, applyNodeChanges, Node, Edge, Connection, EdgeChange, applyEdgeChanges, addEdge, Background, Controls } from "reactflow";
 import { useMemo, useState, MouseEvent } from "react";
 import Editor from "@monaco-editor/react";
+import { loader } from '@monaco-editor/react';
 import "reactflow/dist/style.css";
 import { parse, stringify } from "yaml";
 import { useCallback } from 'react';
 import { Spec, validateSpecSchema } from './spec';
+
+loader.config({paths: { vs: "./node_modules/monaco-editor/min/vs"}})
 
 const buildNodes = function (spec: Spec): Node<TableData>[] {
   return spec.tables.map((t, idx) => {
